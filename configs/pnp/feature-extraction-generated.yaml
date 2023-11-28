@@ -1,0 +1,7 @@
+config:
+  experiment_name: "young_man"
+  init_img: ""
+  prompt: "a photo of a young man"
+  scale: 5.0
+  ddim_steps: 50
+  seed: 42
