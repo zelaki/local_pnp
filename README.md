@@ -81,6 +81,23 @@ The effect of negative prompting is minor in case of realistic guidance images, 
 
 Note that you can run a batch of translations by providing multiple target prompts in the `prompts`  parameter.
 
+
+## Running PnP in [Asyrp](https://arxiv.org/abs/2210.10960)
+
+Asyrp defines an asymetric reverse process for image editing where only the *predicted $x_0$* term is shifted. This is an experimental setup trying to understand what happens when we apply PnP eding only on 1 timestep.
+
+
+```
+python run_pnp.py --config <pnp_config_path> --asyrp --timestep <t>
+```
+
+
+
+
+
+
+
+
 ## Feature Visualization
 
 ### ResBlock Features Visualization
