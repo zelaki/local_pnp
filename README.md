@@ -108,19 +108,3 @@ python run_self_attn_pca.py --block "<visualization_module_name>" --experiment "
 The self-attention visualizations are saved under `<config.exp_path_root>/PCA_self_attention_vis/<experiment_name>` directory.
 
 
-## TI2I Benchmarks
-
-You can find the **Wild-TI2I**, **ImageNetR-TI2I** and **ImageNetR-Fake-TI2I** benchmarks in [this dropbox folder](https://www.dropbox.com/sh/8giw0uhfekft47h/AAAF1frwakVsQocKczZZSX6La?dl=0). The translation prompts and all the necessary configs (e.g. seed, generation prompt, guidance image path) are provided in a yaml file in each benchmark folder.
-
-
-## Citation
-```
-@InProceedings{Tumanyan_2023_CVPR,
-    author    = {Tumanyan, Narek and Geyer, Michal and Bagon, Shai and Dekel, Tali},
-    title     = {Plug-and-Play Diffusion Features for Text-Driven Image-to-Image Translation},
-    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
-    month     = {June},
-    year      = {2023},
-    pages     = {1921-1930}
-}
-```
