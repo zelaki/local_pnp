@@ -288,13 +288,18 @@ class ResBlock(TimestepBlock):
         else:
 
             if out_layers_injected is not None:
-                out_layers_injected_uncond, out_layers_injected_cond = out_layers_injected.chunk(2)
-                b = x.shape[0] // 2
-                h = th.cat([out_layers_injected_uncond]*b + [out_layers_injected_cond]*b)
+                # out_layers_injected_uncond, out_layers_injected_cond = out_layers_injected.chunk(2)
+                # b = x.shape[0] // 2
+                # h = th.cat([out_layers_injected_uncond]*b + [out_layers_injected_cond]*b)
+
+                h = h + emb_out
+                h = self.out_layers(h)
+                h[1]+= out_layers_injected
             else:
 
                 h = h + emb_out
                 h = self.out_layers(h)
+                # print(h.shape)
             self.out_layers_features = h
         return self.skip_connection(x) + h
 

@@ -29,6 +29,9 @@ class DDIMSampler(object):
         assert alphas_cumprod.shape[0] == self.ddpm_num_timesteps, 'alphas have to be defined for each timestep'
         to_torch = lambda x: x.clone().detach().to(torch.float32).to(self.model.device)
 
+
+        torch.save("beta.pt", self.model.betas)
+
         self.register_buffer('betas', to_torch(self.model.betas))
         self.register_buffer('alphas_cumprod', to_torch(alphas_cumprod))
         self.register_buffer('alphas_cumprod_prev', to_torch(self.model.alphas_cumprod_prev))
@@ -186,7 +189,7 @@ class DDIMSampler(object):
 
 
             if timestep is not None:
-                if (injected_features is not None and len(injected_features) > 0) and i == timestep:
+                if (injected_features is not None and len(injected_features) > 0) and i < timestep:
                     print(timestep, step)
                     injected_features_i = injected_features[i]
                 else:

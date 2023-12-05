@@ -30,6 +30,10 @@ def main():
     parser.add_argument("--check-safety", action='store_true')
     parser.add_argument("--timestep", type=int, default=None, help='Experimenting with only 1 timestep injection + Asyrp')
     parser.add_argument("--asyrp", action='store_true')
+    parser.add_argument('--part', type=int, default=0, help='Which part to edit (Panda experiments)')
+    parser.add_argument('--appear', type=int, default=100, help='Choose appearance (Panda experiments)')
+    parser.add_argument('--s', type=int, default=50, help='edit streanght (Panda experiments)')
+
 
     opt = parser.parse_args()
     exp_config = OmegaConf.load(opt.config)
@@ -100,8 +104,8 @@ def main():
 
     def edit(part, appearance, lam, s=16):
         direc = 0
-        Uc = torch.load("/home/theokouz/src/plug-and-play/masks/young_man_multiseed_4/Uc.pt")
-        Us = torch.load("/home/theokouz/src/plug-and-play/masks/young_man_multiseed_4/Us.pt")
+        Uc = torch.load("/home/theokouz/src/plug-and-play/masks/young_man_multiseed_part_16_4/Uc.pt")
+        Us = torch.load("/home/theokouz/src/plug-and-play/masks/young_man_multiseed_part_16_4/Usr_42.pt")
 
 
 
@@ -118,7 +122,7 @@ def main():
         return direc
 
 
-    def load_target_features():
+    def load_target_features(part, appear, s):
         self_attn_output_block_indices = [4,5,6,7,8,9,10,11]
         out_layers_output_block_indices = [4]
         output_block_self_attn_map_injection_thresholds = [ddim_steps // 2] * len(self_attn_output_block_indices)
@@ -133,31 +137,31 @@ def main():
 
         iterator = tqdm(time_range, desc="loading source experiment features", total=total_steps)
         
-        part = [[0]]  # list of target parts here
-        appearance = [400]
-        lam = [400]
+        part = [[part]]  # list of target parts here
+        appearance = [appear]
+        lam = [s]
 
-
+        print(part, appear, lam)
         direc = edit(part, appearance, lam)
-
+        print(direc.shape)
         # Us = torch.load("/home/theokouz/src/plug-and-play/masks/young_man_0_4/Us.pt")
         # mask = Us[:,6].reshape(16,16)
 
         for i, t in enumerate(iterator):
             current_features = {}
-            for (output_block_idx, output_block_self_attn_map_injection_threshold) in zip(self_attn_output_block_indices, output_block_self_attn_map_injection_thresholds):
-                if i <= int(output_block_self_attn_map_injection_threshold):
-                    output_q = torch.load(os.path.join(source_experiment_qkv_path, f"output_block_{output_block_idx}_self_attn_q_time_{t}.pt"))
-                    output_k = torch.load(os.path.join(source_experiment_qkv_path, f"output_block_{output_block_idx}_self_attn_k_time_{t}.pt"))
-                    current_features[f'output_block_{output_block_idx}_self_attn_q'] = output_q
-                    current_features[f'output_block_{output_block_idx}_self_attn_k'] = output_k
+            # for (output_block_idx, output_block_self_attn_map_injection_threshold) in zip(self_attn_output_block_indices, output_block_self_attn_map_injection_thresholds):
+            #     if i <= int(output_block_self_attn_map_injection_threshold):
+            #         output_q = torch.load(os.path.join(source_experiment_qkv_path, f"output_block_{output_block_idx}_self_attn_q_time_{t}.pt"))
+            #         output_k = torch.load(os.path.join(source_experiment_qkv_path, f"output_block_{output_block_idx}_self_attn_k_time_{t}.pt"))
+            #         current_features[f'output_block_{output_block_idx}_self_attn_q'] = output_q
+            #         current_features[f'output_block_{output_block_idx}_self_attn_k'] = output_k
             # print(out_layers_output_block_indices)
             out_layers_output_block_indices = [4]
             for (output_block_idx, feature_injection_threshold) in zip(out_layers_output_block_indices, feature_injection_thresholds):
 
                 if i <= int(feature_injection_threshold):
                     output = torch.load(os.path.join(source_experiment_out_layers_path, f"output_block_{output_block_idx}_out_layers_features_time_{t}.pt"))
-                    current_features[f'output_block_{output_block_idx}_out_layers'] = output# + direc #+ direc
+                    current_features[f'output_block_{output_block_idx}_out_layers'] = direc
                     # output = torch.load(os.path.join(source_experiment_out_layers_path, f"output_block_4_out_layers_features_time_{t}.pt"))
                     # current_features[f'output_block_4_out_layers'] = output#*mask #+ direc
 
@@ -177,8 +181,9 @@ def main():
         start_code = start_code.repeat(batch_size, 1, 1, 1)
 
     precision_scope = autocast if opt.precision=="autocast" else nullcontext
-    injected_features = load_target_features()
+    injected_features = load_target_features(part=opt.part, appear=opt.appear, s=opt.s)
     unconditional_prompt = ""
+    os.makedirs(f"panda_edits/{exp_config.source_experiment_name}", exist_ok=True)
     with torch.no_grad():
         with precision_scope("cuda"):
             with model.ema_scope():
@@ -222,7 +227,8 @@ def main():
                     img = Image.fromarray(x_sample.astype(np.uint8))
                     # img.save(os.path.join(outpaths[k], f"{out_label}_sample_{sample_idx}.png"))
                     # img.save(f"asyrp_exp/horse_asyrp_timesteps/horse_asyrp_t_{opt.timestep}.png")
-                    img.save(f"edit.png")
+                    img.save(f"panda_edits/{exp_config.source_experiment_name}/no_att_step_30_refine_multiple_t_p_{opt.part}_a_{opt.appear}_lam_{opt.s}.png")
+                    # img.save(f"edit.png")
 
                     sample_idx += 1
 
